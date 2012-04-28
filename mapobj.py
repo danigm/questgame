@@ -5,19 +5,22 @@ Generic map object to inheritance
 import pygame
 from pygame.locals import *
 
-from utils import wrap_text, load_image
+from utils import wrap_text, load_image, characters
+from movements import *
 
 
 class MapObj(pygame.sprite.Sprite):
-    def __init__(self, image, m, *args, **kwargs):
+    def __init__(self, image, game, *args, **kwargs):
         super(MapObj, self).__init__(*args, **kwargs)
         self.image, self.rect = load_image(image)
         self.text_img, _ = load_image("text.png")
         self.rect.x = 0
         self.rect.y = -40
 
-        self.map = m
+        self.game = game
+        self.map = self.game.map
         self.map.add(self)
+        self.name = "obj-%d" % len(self.map.objects)
         self.text = ""
         self.text_counter = 0
         self.text_flipped = False
@@ -98,26 +101,39 @@ class MapObj(pygame.sprite.Sprite):
         return self.text if self.text_counter else ""
 
     def collision(self, obj):
-        return False
+        return True
+
+    def move_to(self, x, y):
+        r = self.rect.copy()
+
+        sx, sy = self.screen_pos()
+        self.set_pos(sx + x, sy + y)
+
+        if not self.map.can_move(self):
+            self.rect = r
+
+    def update(self, events):
+        pass
 
 
 class Tree(MapObj):
-    def __init__(self, m):
-        super(Tree, self).__init__("Tree Short.png", m)
+    def __init__(self, game):
+        super(Tree, self).__init__("Tree Short.png", game)
 
     def collision(self, obj):
-        self.set_text("Soy un arbol")
+        self.set_text("Soy el arbol %s" % self.name)
         return False
 
 
 class Guy(MapObj):
-    def __init__(self, image, m, screen, *args, **kwargs):
-        super(Guy, self).__init__(image, m, *args, **kwargs)
+    def __init__(self, image, game, *args, **kwargs):
+        super(Guy, self).__init__(image, game, *args, **kwargs)
 
         self.steps = 1
         self.maxsteps = 6
         self.reset = True
-        self.screen = screen
+        self.screen = self.game.screen
+        self.name = "Player"
 
     def move(self, events):
         r = self.rect.copy()
@@ -128,18 +144,26 @@ class Guy(MapObj):
             self.set_pos(x, y + 1)
             if (self.rect.y + 160) - 80 * si >= self.screen.get_height():
                 self.map.scroll = [si + 1, sj]
+
+            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 0, 1))
         elif events.get(K_UP, False):
             self.set_pos(x, y - 1)
             if (self.rect.y) - 80 * si < 0:
                 self.map.scroll = [si - 1, sj]
+
+            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 0, -1))
         elif events.get(K_LEFT, False):
             self.set_pos(x - 1, y)
             if (self.rect.x) - 100 * sj < 0:
                 self.map.scroll = [si, sj - 1]
+
+            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, -1, 0))
         elif events.get(K_RIGHT, False):
             self.set_pos(x + 1, y)
             if (self.rect.x + 200) - 100 * sj >= self.screen.get_width():
                 self.map.scroll = [si, sj + 1]
+
+            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 1, 0))
         else:
             self.reset = True
 
@@ -164,3 +188,25 @@ class Guy(MapObj):
             self.steps = 1
 
         self.move(events)
+
+
+class RemoteGuy(Guy):
+    imgs = characters()
+    def __init__(self, game, *args, **kwargs):
+        image = self.imgs[kwargs.pop('idx', 0)]
+        super(RemoteGuy, self).__init__(image, game, *args, **kwargs)
+        self.maxsteps = 20
+        self.movement = 'no'
+        self.movements = {'no': no_movement,
+                          'random': random_movement,
+                          'horitonal': linear(1),
+                          'vertical': linear(2),
+                          'circular': circular(3)
+                         }
+
+    def move(self, events):
+        self.movements[self.movement](self)
+
+    def collision(self, obj):
+        self.set_text("Hola, me llamo %s" % self.name)
+        return False

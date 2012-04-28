@@ -33,6 +33,18 @@ class Map:
             im, self.rect = load_image(i)
             self.images.append(im)
 
+    def get_obj(self, name):
+        for o in self.objects:
+            if o.name == name:
+                return o
+
+        return None
+
+    def rm_obj(self, name):
+        o = self.get_obj(name)
+        if o:
+            self.objects.remove(o)
+
     def add(self, obj):
         self.objects.append(obj)
 
@@ -107,3 +119,7 @@ class Map:
                 return o.collision(obj)
 
         return True
+
+    def update(self, events):
+        for o in self.objects:
+            o.update(events)

@@ -6,15 +6,27 @@ from pygame.locals import *
 
 from utils import wrap_text, load_image
 from questmap import Map
-from mapobj import Tree, Guy
+from mapobj import Tree, Guy, RemoteGuy
+from remote import RemoteGame
+
+from events import EventManager, Event
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, server='', player='p1'):
         pygame.init()
         pygame.font.init()
 
+        self.em = EventManager()
+        self.em.add_event(Event("game-event"))
+
         self.mode = "GAME"
+        self.server = server
+        self.player_name = player
+
+        self.remote_game = None
+        if self.server:
+            self.remote_game = RemoteGame(self)
 
         self.window = pygame.display.set_mode((800, 600))
         pygame.display.set_caption('Quest Game')
@@ -29,16 +41,21 @@ class Game:
 
         self.map = Map(1, 1)
         self.map.load_from_image("maps/map1.png")
-
-        self.guy1 = Guy("Character Boy.png", self.map, self.screen)
-        self.guy1.set_pos(1, 1)
-        self.guy1.set_pos(17, 0)
         self.map.scroll = [0, 14]
 
-        tree1 = Tree(self.map)
-        tree2 = Tree(self.map)
-        tree3 = Tree(self.map)
-        tree4 = Tree(self.map)
+        self.guy1 = Guy("Character Boy.png", self)
+        self.guy1.name = self.player_name
+        self.guy1.set_pos(17, 0)
+
+        self.guy2 = RemoteGuy(self, idx=1)
+        self.guy2.name = "Cat girl"
+        self.guy2.movement = "circular"
+        self.guy2.set_pos(15, 0)
+
+        tree1 = Tree(self)
+        tree2 = Tree(self)
+        tree3 = Tree(self)
+        tree4 = Tree(self)
         tree2.set_pos(20, 0)
         tree1.set_pos(20, 1)
         tree3.set_pos(19, 2)
@@ -48,9 +65,9 @@ class Game:
 
     def manage_game(self, event):
         if event.type == QUIT:
-            sys.exit(0)
+            self.exit()
         elif event.type == KEYDOWN and event.key == K_ESCAPE:
-            sys.exit(0)
+            self.exit()
         elif event.type == KEYDOWN:
             self.events[event.key] = True
         elif event.type == KEYUP:
@@ -67,6 +84,7 @@ class Game:
             pygame.key.set_repeat()
         if event.type == KEYDOWN and event.key == K_RETURN:
             self.guy1.set_text(self.text)
+            self.em.signal('game-event', 'TALK %s %s' % (self.player_name, self.text))
             self.mode = "GAME"
             pygame.key.set_repeat()
         if event.type == KEYDOWN:
@@ -104,13 +122,31 @@ class Game:
                 if self.mode == "CHAT":
                     self.manage_chat(event)
 
-            # moving char
-            self.guy1.update(self.events)
+            self.map.update(self.events)
 
             # updating screen
             pygame.display.flip()
 
+    def exit(self):
+        if self.remote_game:
+            self.remote_game.stop()
+        sys.exit(0)
+
 
 if __name__ == '__main__':
-    game = Game()
-    game.main()
+    import getopt
+
+    server = ''
+    name = 'p1'
+    optlist, args = getopt.getopt(sys.argv[1:], 's:n:')
+    for opt, arg in optlist:
+        if opt == '-s':
+            server = arg
+        elif opt == '-n':
+            name = arg
+
+    game = Game(server=server, player=name)
+    try:
+        game.main()
+    except KeyboardInterrupt:
+        game.exit()

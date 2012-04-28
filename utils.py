@@ -38,3 +38,7 @@ def load_image(name, colorkey=None):
     #    image.set_colorkey(colorkey, RLEACCEL)
     return image, image.get_rect()
 
+
+def characters():
+    names = [name for name in os.listdir('data') if name.startswith("Character")]
+    return sorted(names)
