@@ -18,7 +18,7 @@ class RemoteGame:
         self.running = True
         self.error = ""
 
-        self.game.em.connect('game-event', self.game_event)
+        self.game.em.connect('game-event', self.threading_event)
 
         self.connect(game.server)
 
@@ -68,19 +68,21 @@ class RemoteGame:
         ENDL = '\r\n'
         return self.socket.send(data + ENDL)
 
-    def move(self, objname, x, y):
+    def move(self, klass, objname, x, y):
         x = int(x)
         y = int(y)
         o = self.game.map.get_obj(objname)
 
-        if o:
-            o.move_to(x, y)
+        if not o:
+            self.new_obj(klass, objname, x, y)
+        else:
+            o.set_pos(x, y)
 
     def new_obj(self, klass, name, x, y):
         x = int(x)
         y = int(y)
         klass = int(klass)
-        o = RemoteGuy(self.game.map, self.game.screen, idx=klass)
+        o = RemoteGuy(klass, self.game)
         o.name = name
         o.set_pos(x, y)
 
@@ -100,3 +102,7 @@ class RemoteGame:
     def game_event(self, data):
         if not self.error:
             self.send(data)
+
+    def threading_event(self, data):
+        t = threading.Thread(target=self.game_event, args=(data,))
+        t.start()

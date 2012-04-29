@@ -43,11 +43,11 @@ class Game:
         self.map.load_from_image("maps/map1.png")
         self.map.scroll = [0, 14]
 
-        self.guy1 = Guy("Character Boy.png", self)
+        self.guy1 = Guy(0, self)
         self.guy1.name = self.player_name
         self.guy1.set_pos(17, 0)
 
-        self.guy2 = RemoteGuy(self, idx=1)
+        self.guy2 = RemoteGuy(1, self)
         self.guy2.name = "Cat girl"
         self.guy2.movement = "circular"
         self.guy2.set_pos(15, 0)

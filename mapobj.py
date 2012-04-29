@@ -126,9 +126,12 @@ class Tree(MapObj):
 
 
 class Guy(MapObj):
-    def __init__(self, image, game, *args, **kwargs):
+    imgs = characters()
+    def __init__(self, idx, game, *args, **kwargs):
+        image = self.imgs[idx]
         super(Guy, self).__init__(image, game, *args, **kwargs)
 
+        self.idx = idx
         self.steps = 1
         self.maxsteps = 6
         self.reset = True
@@ -139,36 +142,38 @@ class Guy(MapObj):
         r = self.rect.copy()
         x, y = self.screen_pos()
         si, sj = self.map.scroll
+        move = False
 
         if events.get(K_DOWN, False):
             self.set_pos(x, y + 1)
             if (self.rect.y + 160) - 80 * si >= self.screen.get_height():
                 self.map.scroll = [si + 1, sj]
-
-            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 0, 1))
+            move = True
         elif events.get(K_UP, False):
             self.set_pos(x, y - 1)
             if (self.rect.y) - 80 * si < 0:
                 self.map.scroll = [si - 1, sj]
-
-            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 0, -1))
+            move = True
         elif events.get(K_LEFT, False):
             self.set_pos(x - 1, y)
             if (self.rect.x) - 100 * sj < 0:
                 self.map.scroll = [si, sj - 1]
-
-            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, -1, 0))
+            move = True
         elif events.get(K_RIGHT, False):
             self.set_pos(x + 1, y)
             if (self.rect.x + 200) - 100 * sj >= self.screen.get_width():
                 self.map.scroll = [si, sj + 1]
-
-            self.game.em.signal('game-event', 'MOVE %s %s %s' % (self.name, 1, 0))
+            move = True
         else:
             self.reset = True
 
         if not self.map.can_move(self):
             self.rect = r
+            move = False
+
+        if move:
+            x, y = self.screen_pos()
+            self.game.em.signal('game-event', 'MOVE %s %s %s %s' % (self.idx, self.name, x, y))
 
         if self.map.scroll[0] < 0:
             self.map.scroll[0] = 0
@@ -191,10 +196,9 @@ class Guy(MapObj):
 
 
 class RemoteGuy(Guy):
-    imgs = characters()
-    def __init__(self, game, *args, **kwargs):
-        image = self.imgs[kwargs.pop('idx', 0)]
-        super(RemoteGuy, self).__init__(image, game, *args, **kwargs)
+    def __init__(self, idx, game, *args, **kwargs):
+        super(RemoteGuy, self).__init__(idx, game, *args, **kwargs)
+
         self.maxsteps = 20
         self.movement = 'no'
         self.movements = {'no': no_movement,
@@ -203,6 +207,7 @@ class RemoteGuy(Guy):
                           'vertical': linear(2),
                           'circular': circular(3)
                          }
+        self.reset = True
 
     def move(self, events):
         self.movements[self.movement](self)
