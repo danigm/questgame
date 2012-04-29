@@ -66,6 +66,7 @@ class RemoteGame:
 
     def send(self, data):
         ENDL = '\r\n'
+        data = data.encode('utf-8')
         return self.socket.send(data + ENDL)
 
     def move(self, klass, objname, x, y):

@@ -13,13 +13,14 @@ from events import EventManager, Event
 
 
 class Game:
-    def __init__(self, server='', player='p1'):
+    def __init__(self, server='', player='p1', idx=0):
         pygame.init()
         pygame.font.init()
 
         self.em = EventManager()
         self.em.add_event(Event("game-event"))
 
+        self.idx = idx
         self.mode = "GAME"
         self.server = server
         self.player_name = player
@@ -43,7 +44,7 @@ class Game:
         self.map.load_from_image("maps/map1.png")
         self.map.scroll = [0, 14]
 
-        self.guy1 = Guy(0, self)
+        self.guy1 = Guy(self.idx, self)
         self.guy1.set_name(self.player_name)
         self.guy1.set_pos(17, 0)
 
@@ -139,14 +140,17 @@ if __name__ == '__main__':
 
     server = ''
     name = 'p1'
-    optlist, args = getopt.getopt(sys.argv[1:], 's:n:')
+    idx = 0
+    optlist, args = getopt.getopt(sys.argv[1:], 's:n:p:')
     for opt, arg in optlist:
         if opt == '-s':
             server = arg
         elif opt == '-n':
             name = arg
+        elif opt == '-p':
+            idx = int(arg)
 
-    game = Game(server=server, player=name)
+    game = Game(server=server, player=name, idx=idx)
     try:
         game.main()
     except KeyboardInterrupt:
