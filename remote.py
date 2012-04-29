@@ -83,7 +83,7 @@ class RemoteGame:
         y = int(y)
         klass = int(klass)
         o = RemoteGuy(klass, self.game)
-        o.name = name
+        o.set_name(name)
         o.set_pos(x, y)
 
     def del_obj(self, name):

@@ -137,6 +137,16 @@ class Guy(MapObj):
         self.reset = True
         self.screen = self.game.screen
         self.name = "Player"
+        self.image_bak = self.image
+
+    def set_name(self, name):
+        self.name = name
+        self.image = self.image_bak.copy()
+
+        font_surface = self.game.font.render(self.name, True, pygame.Color(255, 255, 255))
+        w, h = self.game.font.size(self.name)
+        w = w / 2.0
+        self.image.blit(font_surface, (self.image.get_width() / 2.0 - w, self.image.get_height() - h - 10))
 
     def move(self, events):
         r = self.rect.copy()
