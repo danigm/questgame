@@ -107,6 +107,7 @@ class Game:
 
     def main(self):
         while True:
+            #print self.clock.get_fps()
             self.clock.tick(60)
             self.screen.fill(pygame.Color(0, 0, 0, 1))
 
