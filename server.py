@@ -35,7 +35,7 @@ class Server:
             self.ss.bind(("", port))
             print "Server started at %s" % port
         except:
-            print "ERROR biding port %s" % port
+            print "ERROR binding port %s" % port
             sys.exit(1)
 
         self.ss.listen(10)
@@ -82,7 +82,15 @@ class Server:
 
 
 if __name__ == '__main__':
-    ss = Server(12345)
+    import getopt
+
+    port = 12345
+    optlist, args = getopt.getopt(sys.argv[1:], 'p:')
+    for opt, arg in optlist:
+        if opt == '-p':
+            port = int(arg)
+
+    ss = Server(port)
     try:
         ss.connect()
     except KeyboardInterrupt:
