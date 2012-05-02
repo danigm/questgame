@@ -29,7 +29,7 @@ class RemoteGame:
         self.socket.settimeout(2)
         try:
             self.socket.connect((host, port))
-            self.send("HELO %s" % self.game.player_name)
+            self.send("HELLO %s" % self.game.player_name)
         except socket.error, msg:
             self.socket.close()
             self.error = 'socket ERROR'
