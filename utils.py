@@ -43,3 +43,8 @@ def load_image(name, colorkey=None):
 def characters():
     names = [name for name in os.listdir('data') if name.startswith("Character")]
     return sorted(names)
+
+
+def trees():
+    names = [name for name in os.listdir('data') if name.startswith("Tree")]
+    return sorted(names)

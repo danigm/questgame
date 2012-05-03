@@ -53,10 +53,10 @@ class Game:
         self.guy2.movement = "circular"
         self.guy2.set_pos(15, 0)
 
-        tree1 = Tree(self)
-        tree2 = Tree(self)
-        tree3 = Tree(self)
-        tree4 = Tree(self)
+        tree1 = Tree(self, 0)
+        tree2 = Tree(self, 1)
+        tree3 = Tree(self, 1)
+        tree4 = Tree(self, 2)
         tree2.set_pos(20, 0)
         tree1.set_pos(20, 1)
         tree3.set_pos(19, 2)
