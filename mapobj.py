@@ -5,7 +5,7 @@ Generic map object to inheritance
 import pygame
 from pygame.locals import *
 
-from utils import wrap_text, load_image, characters
+from utils import wrap_text, load_image, characters, trees
 from movements import *
 
 
@@ -117,8 +117,10 @@ class MapObj(pygame.sprite.Sprite):
 
 
 class Tree(MapObj):
-    def __init__(self, game):
-        super(Tree, self).__init__("Tree Short.png", game)
+    imgs = trees()  # FIXME We could create a dictionary of inert things
+    def __init__(self, game, idx=0):
+        image = self.imgs[idx]
+        super(Tree, self).__init__(image, game)
 
     def collision(self, obj):
         self.set_text("Soy el arbol %s" % self.name)
@@ -213,7 +215,7 @@ class RemoteGuy(Guy):
         self.movement = 'no'
         self.movements = {'no': no_movement,
                           'random': random_movement,
-                          'horitonal': linear(1),
+                          'horizontal': linear(1),
                           'vertical': linear(2),
                           'circular': circular(3)
                          }
