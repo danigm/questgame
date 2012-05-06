@@ -1,0 +1,9 @@
+SCREENHEIGHT: 800
+SCREENWIDTH: 600
+FPS: 60
+TITLE: My brand new game!
+MAP: maps/map1.png
+MENU:
+  - Play
+  - Instructions
+  - Options
