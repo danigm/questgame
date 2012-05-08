@@ -4,12 +4,14 @@ import sys
 import pygame
 from pygame.locals import *
 
-from utils import wrap_text, load_image
+from utils import wrap_text, load_image, load_config
 from questmap import Map
 from mapobj import Tree, Guy, RemoteGuy
 from remote import RemoteGame
 
 from events import EventManager, Event
+
+CONFIG_FILE = "config.yml"
 
 
 class Game:
@@ -20,6 +22,9 @@ class Game:
         self.em = EventManager()
         self.em.add_event(Event("game-event"))
 
+        self.config = load_config(CONFIG_FILE)
+        self.menu_options = self.config['MENU']
+
         self.idx = idx
         self.mode = "GAME"
         self.server = server
@@ -29,19 +34,22 @@ class Game:
         if self.server:
             self.remote_game = RemoteGame(self)
 
-        self.window = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption('Quest Game')
+        self.window = pygame.display.set_mode((self.config['SCREENHEIGHT'], self.config['SCREENWIDTH']))
+        pygame.display.set_caption(self.config['TITLE'])
         self.screen = pygame.display.get_surface()
         self.clock = pygame.time.Clock()
 
         self.chat_surface = pygame.Surface((self.screen.get_width(), 50))
         self.chat_surface.fill(pygame.Color(255, 255, 255))
         self.chat_surface.set_alpha(130)
+        self.menu_surface = pygame.Surface((self.screen.get_width(), self.screen.get_height() // 2))
+        self.menu_surface.fill(pygame.Color(255, 255, 255))
+        self.menu_surface.set_alpha(130)
         self.text = ""
         self.font = pygame.font.SysFont("Sans", 16)
 
         self.map = Map(1, 1)
-        self.map.load_from_image("maps/map1.png")
+        self.map.load_from_image(self.config['MAP'])
         self.map.scroll = [0, 14]
 
         self.guy1 = Guy(self.idx, self)
@@ -76,6 +84,8 @@ class Game:
                 self.mode = "CHAT"
                 self.text = ""
                 pygame.key.set_repeat(300, 10)
+            if event.key == K_m:
+                self.mode = "MENU"
 
             self.events[event.key] = False
 
@@ -99,6 +109,13 @@ class Game:
             if len(self.text) < 141:
                 self.text += t
 
+    def manage_menu(self, event):
+        if event.type == KEYDOWN and event.key == K_ESCAPE:
+            self.mode = "GAME"
+        for option in self.menu_options:
+            #print option
+            pass
+
     def paint_chat(self):
         self.screen.blit(self.chat_surface, (0, self.screen.get_height() - self.chat_surface.get_height()))
         texts = wrap_text(self.font, self.text, self.screen.get_width() - 40)
@@ -109,7 +126,7 @@ class Game:
     def main(self):
         while True:
             #print self.clock.get_fps()
-            self.clock.tick(60)
+            self.clock.tick(self.config['FPS'])
             self.screen.fill(pygame.Color(0, 0, 0, 1))
 
             self.map.draw(self.screen)
@@ -123,6 +140,8 @@ class Game:
                     self.manage_game(event)
                 if self.mode == "CHAT":
                     self.manage_chat(event)
+                if self.mode == "MENU":
+                    self.manage_menu(event)
 
             self.map.update(self.events)
 

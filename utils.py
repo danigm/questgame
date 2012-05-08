@@ -5,6 +5,12 @@ Utils functions for general purpose
 import os
 import pygame
 from pygame.locals import *
+import yaml
+
+
+def load_config(config_file):
+    config = yaml.load(open(config_file).read())
+    return config
 
 
 def wrap_text(font, text, max):
