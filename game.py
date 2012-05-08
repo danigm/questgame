@@ -11,6 +11,8 @@ from remote import RemoteGame
 
 from events import EventManager, Event
 
+CONFIG_FILE = "config.yml"
+
 
 class Game:
     def __init__(self, server='', player='p1', idx=0):
@@ -20,7 +22,7 @@ class Game:
         self.em = EventManager()
         self.em.add_event(Event("game-event"))
 
-        self.config = load_config("config.yml")
+        self.config = load_config(CONFIG_FILE)
         self.menu_options = self.config['MENU']
 
         self.idx = idx
@@ -111,8 +113,8 @@ class Game:
         if event.type == KEYDOWN and event.key == K_ESCAPE:
             self.mode = "GAME"
         for option in self.menu_options:
-            print option
-         #self.mode = "GAME"
+            #print option
+            pass
 
     def paint_chat(self):
         self.screen.blit(self.chat_surface, (0, self.screen.get_height() - self.chat_surface.get_height()))
